@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Senior Swipe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app">
+        <!-- Header -->
+        <header class="top-nav">
+            <h1>Senior Swipe</h1>
+            <p class="subtitle">Trait Edition</p>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="main-content">
+            <!-- 1. Traits View (Home) -->
+            <section id="traits-view" class="view active">
+                <div class="traits-header">
+                    <h2>Select a Question</h2>
+                    <p>Pick a trait to rate seniors on</p>
+                </div>
+                <!-- Grid of traits injected via JS -->
+                <div class="traits-grid" id="traits-grid"></div>
+            </section>
+
+            <!-- 2. Swipe View -->
+            <section id="swipe-view" class="view hidden">
+                <div class="question-header">
+                    <h3 id="current-question-text">Loading question...</h3>
+                </div>
+
+                <div class="card-container" id="card-stack">
+                    <!-- Cards injected via JS -->
+                </div>
+                
+                <div class="swipe-status">
+                    <p id="cards-left-text">Loading...</p>
+                </div>
+                
+                <div class="action-buttons">
+                     <button class="action-btn undo-btn" id="btn-undo" title="Undo">⏪</button>
+                     <button class="action-btn x-btn" id="btn-no" title="No">❌</button>
+                     <button class="action-btn heart-btn" id="btn-yes" title="Yes">✅</button>
+                </div>
+            </section>
+
+            <!-- 3. End Screen View -->
+            <section id="end-view" class="view hidden">
+                <div class="end-content">
+                    <h2>You've rated everyone!</h2>
+                    <p>for this specific question.</p>
+                    <button class="primary-btn" onclick="switchTab('traits')">Pick Another Trait</button>
+                    <!-- Admin Reset Button -->
+                    <button id="admin-reset-btn" class="stealth-btn">Reset Database</button>
+                </div>
+            </section>
+
+            <!-- 4. Leaderboard View -->
+            <section id="leaderboard-view" class="view hidden">
+                <div class="leaderboard-header">
+                    <h2>Leaderboard 🏆</h2>
+                    <p class="lb-subtitle">Select a question:</p>
+                    <div class="trait-selector">
+                        <select id="leaderboard-trait-select" class="lb-select">
+                            <option value="overall" selected>Overall (All Questions)</option>
+                            <!-- Options injected via JS -->
+                        </select>
+                    </div>
+                </div>
+                <div class="leaderboard-list" id="leaderboard-list">
+                    <!-- Leaderboard items injected via JS -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" id="nav-traits" onclick="switchTab('traits')">
+                <span class="icon">📋</span>
+                <span>Traits</span>
+            </button>
+            <button class="nav-btn" id="nav-swipe" onclick="switchTab('swipe')">
+                <span class="icon">↔</span>
+                <span>Swipe</span>
+            </button>
+            <button class="nav-btn" id="nav-leaderboard" onclick="switchTab('leaderboard')">
+                <span class="icon">🏆</span>
+                <span>Rankings</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Data and Application Script -->
+    <script src="data/members.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
