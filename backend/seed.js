@@ -32,7 +32,7 @@ async function seed() {
   // You can fill in the actual names, roles, and filenames for all 7 people here!
   const myRealSeniors = [
     { name: "Sarah", alias: "Board", image: "person1.png.JPG" },
-    { name: "Varsith", alias: "Board", image: "person2.png.JPG" },
+    { name: "Varshith", alias: "Board", image: "person2.png.JPG" },
     { name: "Acharya", alias: "Board", image: "person3.jpeg" },
     { name: "Reenu", alias: "Board", image: "person4.png.JPG" },
     { name: "Shashank", alias: "SC", image: "person5.png.JPG" },
@@ -42,8 +42,8 @@ async function seed() {
     { name: "Daivik", alias: "SC", image: "daivik.jpeg" },
     { name: "Chirayu", alias: "SC", image: "chirayu.jpeg" },
     { name: "Shikhar", alias: "SC", image: "shikhar.jpeg" },
-    { name: "Rujin", alias: "SC", image: "rujin.jpeg" },
-    { name: "Nithin", alias: "SC", image: "nithin.jpeg" },
+    { name: "Rujin", alias: "Board", image: "rujin.jpeg" },
+    { name: "Nithin", alias: "Board", image: "nithin.jpeg" },
     { name: "Radhika", alias: "Board", image: "radhika.jpeg" },
     { name: "Shukla", alias: "Board", image: "shukla.jpeg" },
     { name: "Suhani", alias: "SC", image: "suhani.jpeg" },
@@ -52,13 +52,19 @@ async function seed() {
     { name: "Aman", alias: "Board", image: "aman.jpeg" },
     { name: "Jo", alias: "SC", image: "jo.jpeg" },
     { name: "Ashvik", alias: "SC", image: "ashvik.jpeg" },
-    { name: "Maneet", alias: "SC", image: "maneet.png" },
-    { name: "Utkarsh", alias: "SC", image: "utkarsh.png" },
+    { name: "Maneet", alias: "SC", image: "maneet.jpeg" },
+    { name: "Utkarsh", alias: "SC", image: "utkarsh.jpeg" },
     { name: "Sachin", alias: "SC", image: "sachin.png" },
     { name: "Shourya", alias: "SC", image: "shourya.jpeg" },
-    { name: "Bhavya", alias: "SC", image: "bhavya.jpeg" },
-    { name: "Aayush", alias: "SC", image: "aayush.jpeg" },
-
+    { name: "Bhavya", alias: "Board", image: "bhavya.jpeg" },
+    { name: "Aayush K", alias: "SC", image: "aayush.jpeg" },
+    { name: "Rohilia", alias: "SC", image: "rohilia.png" },
+    { name: "Aayushman", alias: "SC", image: "aayushman.png" },
+    { name: "Ananya", alias: "SC", image: "ananya.png" },
+    { name: "Utpal", alias: "SC", image: "Utpal.png" },
+    { name: "Aakarsh", alias: "SC", image: "Aakarsh.png" },
+    { name: "Aayush", alias: "SC", image: "aayushcc.png" },
+    { name: "Tabarak", alias: "SC", image: "taba.jpeg" }
   ];
 
   for (const person of myRealSeniors) {

@@ -18,15 +18,17 @@ async function getNextQuestion(sessionId) {
         AND r.session_id = ?
       WHERE r.id IS NULL
     ),
-    MinCount AS (
-      SELECT MIN(total_count) as min_total FROM Unanswered
+    SeniorViews AS (
+      SELECT senior_id, SUM(total_count) as total_senior_views
+      FROM pair_stats
+      GROUP BY senior_id
     )
     SELECT u.senior_id, u.trait_id, s.name, s.alias, s.caricature_id, t.question_text
     FROM Unanswered u
-    JOIN MinCount m ON u.total_count = m.min_total
+    JOIN SeniorViews v ON u.senior_id = v.senior_id
     JOIN seniors s ON u.senior_id = s.id
     JOIN traits t ON u.trait_id = t.id
-    ORDER BY RANDOM()
+    ORDER BY v.total_senior_views ASC, u.total_count ASC, RANDOM()
     LIMIT 1;
   `;
 
