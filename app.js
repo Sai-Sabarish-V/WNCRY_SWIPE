@@ -150,8 +150,8 @@ function renderCard(questionData) {
       <p class="card-bio">Swipe right if yes, left if no!</p>
     </div>
     
-    <div class="swipe-overlay overlay-yes">YES✅</div>
-    <div class="swipe-overlay overlay-no">NO❌</div>
+    <div class="swipe-overlay overlay-yes">LIKE</div>
+    <div class="swipe-overlay overlay-no">NOPE</div>
   `;
   
   container.appendChild(card);
