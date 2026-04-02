@@ -335,7 +335,7 @@ async function renderLeaderboard() {
 }
 
 function triggerConfetti() {
-  const duration = 2000;
+  const duration = 800;
   const end = Date.now() + duration;
 
   (function frame() {
@@ -357,7 +357,11 @@ async function fetchAndRenderTraits() {
     traits.forEach(t => {
       const pill = document.createElement('div');
       pill.className = 'trait-pill';
-      pill.innerText = t.question_text.length > 25 ? t.question_text.substring(0, 25) + '...' : t.question_text;
+      
+      let shortName = t.question_text.replace(/^will you go to this senior (for|to) /i, '');
+      shortName = shortName.charAt(0).toUpperCase() + shortName.slice(1);
+      
+      pill.innerText = shortName.length > 25 ? shortName.substring(0, 25) + '...' : shortName;
       pill.onclick = () => filterLeaderboard(t.id, pill);
       container.appendChild(pill);
     });
