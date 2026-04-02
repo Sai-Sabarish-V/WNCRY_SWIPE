@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { initDB, dbPromise } = require('./database');
 const { getNextQuestion, submitSwipe, getLeaderboard } = require('./queries');
 
@@ -8,6 +9,13 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static frontend files
+const rootDir = path.join(__dirname, '..');
+app.get('/', (req, res) => res.sendFile(path.join(rootDir, 'index.html')));
+app.get('/app.js', (req, res) => res.sendFile(path.join(rootDir, 'app.js')));
+app.get('/style.css', (req, res) => res.sendFile(path.join(rootDir, 'style.css')));
+app.use('/images', express.static(path.join(rootDir, 'images')));
 
 app.get('/next-question', async (req, res) => {
   try {
