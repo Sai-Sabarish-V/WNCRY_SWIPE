@@ -1,0 +1,54 @@
+const { dbPromise, initDB } = require('./database');
+
+const traits = [
+  "will you go to this senior for fashion advice", // social
+  "will you go to this senior for pointers to pull baddies", // personality
+  "will you go to this senior for gossip/tea", // social
+  "will you go to this senior for tutoring", // academic
+  "will you go to this senior to bail you out of jail (metaphorically)", // personality
+  "will you go to this senior for partying", // social
+  "will you go to this senior for consolation after heartbreak", // personality
+  "will you go to this senior for deep conversations", // personality
+  "will you go to this senior to put one psych scene" // social
+];
+
+async function seed() {
+  const db = await initDB();
+
+  // Clear existing data for fresh seed
+  await db.exec('DELETE FROM traits');
+  await db.exec('DELETE FROM sqlite_sequence WHERE name="traits"');
+  await db.exec('DELETE FROM seniors');
+  await db.exec('DELETE FROM sqlite_sequence WHERE name="seniors"');
+  await db.exec('DELETE FROM pair_stats');
+
+  console.log('Seeding traits...');
+  for (const text of traits) {
+    await db.run('INSERT INTO traits (question_text) VALUES (?)', [text]);
+  }
+
+  console.log('Seeding placeholder seniors...');
+  for (let i = 1; i <= 20; i++) {
+    await db.run(
+      'INSERT INTO seniors (name, alias, caricature_id) VALUES (?, ?, ?)',
+      [`Senior ${i}`, `Alias ${i}`, `caricature_${i}`]
+    );
+  }
+
+  console.log('Pre-populating pair_stats...');
+  const seniorRows = await db.all('SELECT id FROM seniors');
+  const traitRows = await db.all('SELECT id FROM traits');
+
+  const insertStat = await db.prepare('INSERT INTO pair_stats (senior_id, trait_id) VALUES (?, ?)');
+  for (const s of seniorRows) {
+    for (const t of traitRows) {
+      await insertStat.run([s.id, t.id]);
+    }
+  }
+  await insertStat.finalize();
+
+  console.log('Database seeded successfully!');
+  await db.close();
+}
+
+seed().catch(console.error);

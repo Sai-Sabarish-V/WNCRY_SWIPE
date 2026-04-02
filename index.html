@@ -24,18 +24,8 @@
 
         <!-- Main Content Area -->
         <main id="main-content">
-            <!-- 1. Traits View (Home) -->
-            <section id="traits-view" class="view active">
-                <div class="traits-header">
-                    <h2>Select a Question</h2>
-                    <p>Pick a trait to rate seniors on</p>
-                </div>
-                <!-- Grid of traits injected via JS -->
-                <div class="traits-grid" id="traits-grid"></div>
-            </section>
-
-            <!-- 2. Swipe View -->
-            <section id="swipe-view" class="view hidden">
+            <!-- 1. Swipe View -->
+            <section id="swipe-view" class="view active">
                 <div class="question-header">
                     <h3 id="current-question-text">Loading question...</h3>
                 </div>
@@ -45,38 +35,29 @@
                 </div>
                 
                 <div class="swipe-status">
-                    <p id="cards-left-text">Loading...</p>
+                    <p id="cards-left-text"></p>
                 </div>
                 
                 <div class="action-buttons">
-                     <button class="action-btn undo-btn" id="btn-undo" title="Undo">⏪</button>
                      <button class="action-btn x-btn" id="btn-no" title="No">❌</button>
                      <button class="action-btn heart-btn" id="btn-yes" title="Yes">✅</button>
                 </div>
             </section>
 
-            <!-- 3. End Screen View -->
+            <!-- 2. End Screen View -->
             <section id="end-view" class="view hidden">
                 <div class="end-content">
-                    <h2>You've rated everyone!</h2>
-                    <p>for this specific question.</p>
-                    <button class="primary-btn" onclick="switchTab('traits')">Pick Another Trait</button>
-                    <!-- Admin Reset Button -->
-                    <button id="admin-reset-btn" class="stealth-btn">Reset Database</button>
+                    <h2>You're all out!</h2>
+                    <p>You've rated everyone.</p>
+                    <button class="primary-btn" onclick="switchTab('leaderboard')">Check Leaderboard</button>
                 </div>
             </section>
 
-            <!-- 4. Leaderboard View -->
+            <!-- 3. Leaderboard View -->
             <section id="leaderboard-view" class="view hidden">
                 <div class="leaderboard-header">
                     <h2>Leaderboard 🏆</h2>
-                    <p class="lb-subtitle">Select a question:</p>
-                    <div class="trait-selector">
-                        <select id="leaderboard-trait-select" class="lb-select">
-                            <option value="overall" selected>Overall (All Questions)</option>
-                            <!-- Options injected via JS -->
-                        </select>
-                    </div>
+                    <p class="lb-subtitle">Top 3 Overall Standing</p>
                 </div>
                 <div class="leaderboard-list" id="leaderboard-list">
                     <!-- Leaderboard items injected via JS -->
@@ -86,11 +67,7 @@
 
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
-            <button class="nav-btn active" id="nav-traits" onclick="switchTab('traits')">
-                <span class="icon">📋</span>
-                <span>Traits</span>
-            </button>
-            <button class="nav-btn" id="nav-swipe" onclick="switchTab('swipe')">
+            <button class="nav-btn active" id="nav-swipe" onclick="switchTab('swipe')">
                 <span class="icon">↔</span>
                 <span>Swipe</span>
             </button>
@@ -101,8 +78,7 @@
         </nav>
     </div>
 
-    <!-- Data and Application Script -->
-    <script src="data/members.js"></script>
+    <!-- Application Script -->
     <script src="app.js"></script>
 </body>
 </html>

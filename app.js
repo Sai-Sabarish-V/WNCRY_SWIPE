@@ -1,39 +1,19 @@
 /**
- * Senior Swipe - Trait System Architecture
+ * Senior Swipe - Network Integrated Architecture
  */
 
-const traits = [
-    { id: 't1', text: "Will you go to this senior for fashion advice?", category: "social" },
-    { id: 't2', text: "Will you go to this senior for pointers to pull baddies?", category: "personality" },
-    { id: 't3', text: "Will you go to this senior for gossip/tea?", category: "social" },
-    { id: 't4', text: "Will you go to this senior for tutoring?", category: "academic" },
-    { id: 't5', text: "Will you go to this senior to bail you out of jail (metaphorically)?", category: "personality" },
-    { id: 't6', text: "Will you go to this senior for partying?", category: "social" },
-    { id: 't7', text: "Will you go to this senior for consolation after heartbreak?", category: "personality" },
-    { id: 't8', text: "Will you go to this senior for deep conversations?", category: "personality" },
-    { id: 't9', text: "Will you go to this senior to put one psych scene?", category: "social" }
-];
-
-// State
-const RATINGS_KEY = 'seniorSwipeTraitRatings';
-let ratings = {};
-
-try {
-    const storedStr = localStorage.getItem(RATINGS_KEY);
-    if (storedStr) {
-        ratings = JSON.parse(storedStr);
-    }
-    if (typeof ratings !== 'object' || ratings === null) {
-        ratings = {};
-    }
-} catch (e) {
-    ratings = {};
+// Generate or retrieve Session ID
+let sessionId = localStorage.getItem('swiper_session_id');
+if (!sessionId) {
+  sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
+  localStorage.setItem('swiper_session_id', sessionId);
 }
 
-let unratedMembers = [];
+const API_BASE = 'http://localhost:3000';
+
+let currentQuestion = null;
 let topCard = null;
 let topCardHammer = null;
-let currentTraitId = null;
 
 // Audio Context for synthesized sounds
 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -78,176 +58,106 @@ function playSound(type) {
 // ----------------------------------------------------
 
 function initApp() {
-  // Ensure ratings object has all traits initialized
-  traits.forEach(t => {
-      if (!ratings[t.id]) ratings[t.id] = {};
-  });
-
-  // Bind Action Buttons in Swipe View
+  // Bind Action Buttons
   document.getElementById('btn-no').addEventListener('click', () => handleButtonSwipe('no'));
   document.getElementById('btn-yes').addEventListener('click', () => handleButtonSwipe('yes'));
-  document.getElementById('btn-undo').addEventListener('click', undoLastSwipe);
 
-  // Bind Keyboard (Keydown listener)
+  // Bind Keyboard
   document.addEventListener('keydown', (e) => {
-    // Swipe keys
-    if (document.getElementById('swipe-view').classList.contains('active') && unratedMembers.length > 0) {
+    if (document.getElementById('swipe-view').classList.contains('active') && topCard) {
       if (e.key === 'ArrowRight') handleButtonSwipe('yes');
       if (e.key === 'ArrowLeft') handleButtonSwipe('no');
     }
-    
-    // Admin Reset Shortcut: Ctrl+Shift+X
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'x') {
-        e.preventDefault();
-        resetApp();
-    }
   });
 
-  // Reset database button
-  const resetBtn = document.getElementById('admin-reset-btn');
-  if (resetBtn) {
-      resetBtn.addEventListener('click', resetApp);
-  } else {
-      console.warn("Reset button missing in DOM");
-  }
-
-  // Audio unlock on first interaction
+  // Audio unlock
   document.body.addEventListener('pointerdown', initAudio, { once: true });
   document.body.addEventListener('keydown', initAudio, { once: true });
 
-  // Bind Leaderboard Select
-  const lbSelect = document.getElementById('leaderboard-trait-select');
-  if (lbSelect) {
-      traits.forEach(trait => {
-          const opt = document.createElement('option');
-          opt.value = trait.id;
-          opt.innerText = `"${trait.text}"`;
-          lbSelect.appendChild(opt);
-      });
-      lbSelect.addEventListener('change', (e) => {
-          renderLeaderboard(e.target.value);
-      });
-  }
-
-  renderTraits();
+  // Initial fetch
+  fetchNextQuestion();
 }
 
-function renderTraits() {
-    const grid = document.getElementById('traits-grid');
-    if (!grid) return;
-    grid.innerHTML = '';
+// ----------------------------------------------------
+// Network Queries
+// ----------------------------------------------------
 
-    traits.forEach(trait => {
-        const ratedCount = Object.keys(ratings[trait.id] || {}).length;
-        const totalMembers = members.length;
-        const isCompleted = ratedCount >= totalMembers;
+async function fetchNextQuestion() {
+  try {
+    const res = await fetch(`${API_BASE}/next-question?session_id=${sessionId}`);
+    const data = await res.json();
 
-        const card = document.createElement('div');
-        card.className = `trait-card ${isCompleted ? 'completed' : ''}`;
-        card.onclick = () => selectTrait(trait.id);
-        
-        card.innerHTML = `
-            <div class="trait-category ${trait.category}">${trait.category}</div>
-            <div class="trait-text">"${trait.text}"</div>
-            <div style="margin-top: 10px; font-size: 0.75rem; color: #888;">
-                ${isCompleted ? '✅ Completed' : `${ratedCount}/${totalMembers} Rated`}
-            </div>
-        `;
-        grid.appendChild(card);
+    if (data.done) {
+        showEndScreen();
+        return;
+    }
+
+    currentQuestion = data;
+    renderCard(currentQuestion);
+  } catch (err) {
+    console.error("Failed to fetch next question:", err);
+    document.getElementById('current-question-text').innerText = "Network Error! Is the backend running on localhost:3000?";
+  }
+}
+
+async function submitSwipeToBackend(responseType) {
+  if (!currentQuestion) return;
+
+  try {
+    const payload = {
+      session_id: sessionId,
+      senior_id: currentQuestion.senior_id,
+      trait_id: currentQuestion.trait_id,
+      response: responseType
+    };
+
+    await fetch(`${API_BASE}/submit-swipe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
-}
-
-function selectTrait(traitId) {
-    currentTraitId = traitId;
-    const traitObj = traits.find(t => t.id === traitId);
-    
-    document.getElementById('current-question-text').innerText = `"${traitObj.text}"`;
-    
-    document.getElementById('nav-swipe').classList.remove('disabled');
-    switchTab('swipe');
-    loadDataForCurrentTrait();
-}
-
-function loadDataForCurrentTrait() {
-  const shuffled = [...members].sort(() => Math.random() - 0.5);
-  
-  // Exclude members already rated for THIS trait
-  unratedMembers = shuffled.filter(m => {
-      // safe guard
-      if(!ratings[currentTraitId]) return true;
-      return !ratings[currentTraitId][m.id];
-  });
-
-  if (unratedMembers.length === 0) {
-    showEndScreen();
-  } else {
-    document.getElementById('swipe-view').classList.add('active');
-    document.getElementById('swipe-view').classList.remove('hidden');
-    document.getElementById('end-view').classList.remove('active');
-    document.getElementById('end-view').classList.add('hidden');
-    renderCardStack();
+  } catch (err) {
+    console.error("Failed to submit swipe:", err);
   }
 }
 
-function updateCardsLeft() {
-  document.getElementById('cards-left-text').innerText = `${unratedMembers.length} senior${unratedMembers.length !== 1 ? 's' : ''} left`;
-}
+// ----------------------------------------------------
+// UI Rendering & Swipe Logic
+// ----------------------------------------------------
 
-function renderCardStack() {
+function renderCard(questionData) {
+  document.getElementById('current-question-text').innerText = `"${questionData.question_text}"`;
+  
   const container = document.getElementById('card-stack');
   container.innerHTML = '';
   
-  const cardsToRender = unratedMembers.slice(0, 3).reverse();
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.transform = `translateY(0px) scale(1)`;
+  card.style.zIndex = 1;
   
-  cardsToRender.forEach((member, idx) => {
-    const isTopCard = idx === cardsToRender.length - 1;
-    const i = cardsToRender.length - 1 - idx;
-    
-    const scale = 1 - (i * 0.05);
-    const translateY = i * 15;
-    
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.dataset.id = member.id;
-    card.style.transform = `translateY(${translateY}px) scale(${scale})`;
-    card.style.zIndex = idx;
-    
-    card.innerHTML = `
-      <img src="${member.image}" alt="${member.name}" draggable="false" />
-      <div class="card-info">
-        <div class="card-header">
-           <span class="card-name">${member.name}</span>
-           <span class="card-year">${member.year}</span>
-        </div>
-        <div class="card-role">${member.role}</div>
-        <p class="card-bio">${member.bio}</p>
-        <div class="card-tags">
-          ${member.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
-        </div>
+  // Build a generic fallback image since we don't have members.js
+  const imgSrc = `https://api.dicebear.com/9.x/micah/svg?seed=${questionData.alias}`;
+
+  card.innerHTML = `
+    <img src="${imgSrc}" alt="${questionData.name}" draggable="false" style="background: rgba(255,255,255,0.05); padding:20px; object-fit: contain;" />
+    <div class="card-info">
+      <div class="card-header">
+         <span class="card-name">${questionData.name}</span>
+         <span class="card-year">${questionData.alias}</span>
       </div>
-      
-      <div class="swipe-overlay overlay-yes">YES✅</div>
-      <div class="swipe-overlay overlay-no">NO❌</div>
-    `;
+      <div class="card-role">${questionData.caricature_id}</div>
+      <p class="card-bio">Swipe right if yes, left if no!</p>
+    </div>
     
-    container.appendChild(card);
-    
-    if (isTopCard) {
-      topCard = card;
-      initHammer(topCard);
-    }
-  });
+    <div class="swipe-overlay overlay-yes">YES✅</div>
+    <div class="swipe-overlay overlay-no">NO❌</div>
+  `;
   
-  updateCardsLeft();
+  container.appendChild(card);
+  topCard = card;
+  initHammer(topCard);
 }
-
-// ----------------------------------------------------
-// Swipe Logic
-// ----------------------------------------------------
-
-let lastSwipedMember = null;
-let lastSwipedType = null;
-let lastTraitId = null;
 
 function initHammer(card) {
   if (topCardHammer) topCardHammer.destroy();
@@ -297,13 +207,13 @@ function initHammer(card) {
 }
 
 function handleButtonSwipe(type) {
-  if (unratedMembers.length === 0 || !topCard) return;
+  if (!topCard) return;
   const animClass = type === 'yes' ? 'fly-right' : 'fly-left';
   processSwipe(type, animClass, topCard);
 }
 
-function processSwipe(type, animClass, cardEl) {
-  const member = unratedMembers.shift();
+async function processSwipe(type, animClass, cardEl) {
+  topCard = null; // Prevent double swipe
   
   if (type === 'yes') cardEl.querySelector('.overlay-yes').style.opacity = 1;
   else if (type === 'no') cardEl.querySelector('.overlay-no').style.opacity = 1;
@@ -311,69 +221,13 @@ function processSwipe(type, animClass, cardEl) {
   cardEl.classList.add(animClass);
   playSound(type);
 
-  // Store Rating securely
-  if(!ratings[currentTraitId]) ratings[currentTraitId] = {};
-  ratings[currentTraitId][member.id] = type;
-  localStorage.setItem(RATINGS_KEY, JSON.stringify(ratings));
+  // Send request asynchronously
+  await submitSwipeToBackend(type);
 
-  lastSwipedMember = member;
-  lastSwipedType = type;
-  lastTraitId = currentTraitId;
-
+  // Buffer slightly for animation
   setTimeout(() => {
-    if (unratedMembers.length === 0) {
-      showEndScreen();
-    } else {
-      renderCardStack();
-    }
-  }, 300);
-}
-
-function undoLastSwipe() {
-  if (!lastSwipedMember || lastTraitId !== currentTraitId) return;
-  
-  // Remove from state
-  delete ratings[currentTraitId][lastSwipedMember.id];
-  localStorage.setItem(RATINGS_KEY, JSON.stringify(ratings));
-  
-  // Put member back
-  unratedMembers.unshift(lastSwipedMember);
-  lastSwipedMember = null;
-  lastTraitId = null;
-  
-  document.getElementById('end-view').classList.add('hidden');
-  document.getElementById('end-view').classList.remove('active');
-  document.getElementById('swipe-view').classList.add('active');
-  document.getElementById('swipe-view').classList.remove('hidden');
-  renderCardStack();
-  
-  initAudio();
-  playSound('no');
-}
-
-function resetApp() {
-  if(confirm("Are you sure you want to completely clear the local database? This will reset all your trait reviews.")) {
-    // 1. Wipe local storage completely
-    localStorage.removeItem(RATINGS_KEY);
-    
-    // 2. Clear state entirely
-    ratings = {};
-    traits.forEach(t => ratings[t.id] = {});
-    currentTraitId = null;
-    lastSwipedMember = null;
-    lastTraitId = null;
-    unratedMembers = [];
-    
-    // 3. Clear UI Stack
-    document.getElementById('card-stack').innerHTML = '';
-    
-    // 4. Send back to traits selection view instantly
-    switchTab('traits');
-    renderTraits();
-    
-    // 5. Notify the user this succeeded without reloading
-    alert("Database has been reset successfully. Everything is wiped!");
-  }
+    fetchNextQuestion();
+  }, 200);
 }
 
 // ----------------------------------------------------
@@ -381,42 +235,23 @@ function resetApp() {
 // ----------------------------------------------------
 
 function switchTab(tabId) {
-  if(tabId === 'swipe' && !currentTraitId) return;
-
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`nav-${tabId}`).classList.add('active');
+  const navBtn = document.getElementById(`nav-${tabId}`);
+  if(navBtn) navBtn.classList.add('active');
   
-  document.getElementById('traits-view').classList.toggle('active', tabId === 'traits');
-  document.getElementById('traits-view').classList.toggle('hidden', tabId !== 'traits');
+  document.getElementById('swipe-view').classList.toggle('active', tabId === 'swipe');
+  document.getElementById('swipe-view').classList.toggle('hidden', tabId !== 'swipe');
 
   document.getElementById('leaderboard-view').classList.toggle('active', tabId === 'leaderboard');
   document.getElementById('leaderboard-view').classList.toggle('hidden', tabId !== 'leaderboard');
   
-  if(tabId === 'traits') {
-      renderTraits();
-      document.getElementById('swipe-view').classList.add('hidden');
-      document.getElementById('swipe-view').classList.remove('active');
-      document.getElementById('end-view').classList.add('hidden');
-      document.getElementById('end-view').classList.remove('active');
-  }
-
-  if (tabId === 'swipe') {
-      if (unratedMembers.length === 0) {
-          showEndScreen();
-      } else {
-          document.getElementById('swipe-view').classList.add('active');
-          document.getElementById('swipe-view').classList.remove('hidden');
-      }
-  } else {
-      document.getElementById('swipe-view').classList.add('hidden');
-      document.getElementById('swipe-view').classList.remove('active');
-      document.getElementById('end-view').classList.add('hidden');
-      document.getElementById('end-view').classList.remove('active');
-  }
+  document.getElementById('end-view').classList.add('hidden');
+  document.getElementById('end-view').classList.remove('active');
 
   if (tabId === 'leaderboard') {
-    const lbSelect = document.getElementById('leaderboard-trait-select');
-    renderLeaderboard(lbSelect ? lbSelect.value : 'overall');
+    renderLeaderboard();
+  } else if (tabId === 'swipe' && !currentQuestion) {
+    fetchNextQuestion();
   }
 }
 
@@ -425,67 +260,60 @@ function showEndScreen() {
   document.getElementById('swipe-view').classList.add('hidden');
   document.getElementById('end-view').classList.remove('hidden');
   document.getElementById('end-view').classList.add('active');
-  document.getElementById('nav-swipe').classList.add('disabled');
-  currentTraitId = null;
-  renderTraits();
 }
 
 // ----------------------------------------------------
 // Leaderboard Logic
 // ----------------------------------------------------
 
-function renderLeaderboard(filterId) {
+async function renderLeaderboard() {
   const container = document.getElementById('leaderboard-list');
-  container.innerHTML = '';
+  container.innerHTML = '<h3>Loading...</h3>';
   
-  const scoredMembers = members.map(m => {
-    let yesVotes = 0;
+  try {
+    const res = await fetch(`${API_BASE}/leaderboard`);
+    const scoredMembers = await res.json();
     
-    traits.forEach(trait => {
-        if (filterId === 'overall' || trait.id === filterId) {
-            if (ratings[trait.id] && ratings[trait.id][m.id] === 'yes') {
-                yesVotes++;
-            }
-        }
+    container.innerHTML = '';
+    
+    scoredMembers.forEach((m, idx) => {
+      let rankClass = '';
+      if (idx === 0) rankClass = 'rank-1';
+      else if (idx === 1) rankClass = 'rank-2';
+      else if (idx === 2) rankClass = 'rank-3';
+
+      let rankDisplay = `#${idx + 1}`;
+      if (idx === 0) rankDisplay = '🥇';
+      if (idx === 1) rankDisplay = '🥈';
+      if (idx === 2) rankDisplay = '🥉';
+      
+      const imgSrc = `https://api.dicebear.com/9.x/micah/svg?seed=${m.alias}`;
+
+      const div = document.createElement('div');
+      div.className = `leaderboard-item ${rankClass}`;
+      div.style.animationDelay = `${idx * 0.1}s`;
+      
+      div.innerHTML = `
+        <div class="rank">${rankDisplay}</div>
+        <img src="${imgSrc}" class="avatar" draggable="false" style="background:#fff;" />
+        <div class="lb-info">
+          <div class="lb-name">${m.name}</div>
+          <div class="lb-role">${m.alias} - ${m.caricature_id}</div>
+        </div>
+        <div class="lb-score">
+           Score: ${m.score}
+        </div>
+      `;
+      
+      container.appendChild(div);
     });
 
-    return { ...m, yesVotes };
-  });
-  
-  scoredMembers.sort((a, b) => b.yesVotes - a.yesVotes);
-  
-  scoredMembers.forEach((m, idx) => {
-    let rankClass = '';
-    if (idx === 0) rankClass = 'rank-1';
-    else if (idx === 1) rankClass = 'rank-2';
-    else if (idx === 2) rankClass = 'rank-3';
-
-    let rankDisplay = `#${idx + 1}`;
-    if (idx === 0) rankDisplay = '🥇';
-    if (idx === 1) rankDisplay = '🥈';
-    if (idx === 2) rankDisplay = '🥉';
-    
-    const div = document.createElement('div');
-    div.className = `leaderboard-item ${rankClass}`;
-    div.style.animationDelay = `${idx * 0.1}s`;
-    
-    div.innerHTML = `
-      <div class="rank">${rankDisplay}</div>
-      <img src="${m.image}" class="avatar" draggable="false" />
-      <div class="lb-info">
-        <div class="lb-name">${m.name}</div>
-        <div class="lb-role">${m.role}</div>
-      </div>
-      <div class="lb-score">
-         ✅ ${m.yesVotes}
-      </div>
-    `;
-    
-    container.appendChild(div);
-  });
-
-  if (filterId === 'overall' && scoredMembers[0].yesVotes > 0 && typeof confetti === 'function') {
-    triggerConfetti();
+    if (scoredMembers.length > 0 && typeof confetti === 'function') {
+      triggerConfetti();
+    }
+  } catch (err) {
+    console.error("Leaderboard Error:", err);
+    container.innerHTML = '<h3>Error loading leaderboard</h3>';
   }
 }
 
