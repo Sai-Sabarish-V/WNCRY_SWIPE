@@ -29,8 +29,10 @@ async function seed() {
 
   console.log('Seeding real seniors...');
 
-  // You can fill in the actual names, roles, and filenames for all 7 people here!
+  // PASTE YOUR CLOUDINARY PUBLIC IDs HERE for the `image` field!
+  // Example: image: "person1" (instead of "person1.png.JPG")
   const myRealSeniors = [
+    // TODO: Update these image values with your newly uploaded Cloudinary Public IDs
     { name: "Sarah", alias: "Board", image: "person1.png.JPG" },
     { name: "Varshith", alias: "Board", image: "person2.png.JPG" },
     { name: "Acharya", alias: "Board", image: "person3.jpeg" },
@@ -64,7 +66,7 @@ async function seed() {
     { name: "Utpal", alias: "SC", image: "Utpal.png" },
     { name: "Aakarsh", alias: "SC", image: "Aakarsh.png" },
     { name: "Aayush", alias: "SC", image: "aayushcc.png" },
-    { name: "Tabarak", alias: "SC", image: "taba.jpeg" }
+    { name: "Taba", alias: "SC", image: "taba.jpeg" }
   ];
 
   for (const person of myRealSeniors) {

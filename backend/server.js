@@ -16,7 +16,6 @@ app.get('/', (req, res) => res.sendFile(path.join(rootDir, 'index.html')));
 app.get('/app.js', (req, res) => res.sendFile(path.join(rootDir, 'app.js')));
 app.get('/pixelTransition.js', (req, res) => res.sendFile(path.join(rootDir, 'pixelTransition.js')));
 app.get('/style.css', (req, res) => res.sendFile(path.join(rootDir, 'style.css')));
-app.use('/images', express.static(path.join(rootDir, 'images')));
 
 app.get('/next-question', async (req, res) => {
   try {

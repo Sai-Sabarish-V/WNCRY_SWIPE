@@ -10,6 +10,7 @@ if (!sessionId) {
 }
 
 const API_BASE = '';
+const CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME_HERE"; // <-- PASTE YOUR CLOUDINARY CLOUD NAME HERE
 
 let currentQuestion = null;
 let topCard = null;
@@ -137,8 +138,8 @@ function renderCard(questionData) {
   card.style.transform = `translateY(0px) scale(1)`;
   card.style.zIndex = 1;
   
-  // Load the image from the local folder based on caricature_id
-  const imgSrc = `./images/${questionData.caricature_id}`;
+  // Load the image from Cloudinary based on caricature_id (which acts as the public ID)
+  const imgSrc = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/${questionData.caricature_id}`;
 
   card.innerHTML = `
     <div class="img-wrapper" style="width:100%; height:100%; position:relative; overflow:hidden; border-radius: var(--card-radius) var(--card-radius) 0 0;">
@@ -304,7 +305,7 @@ async function renderLeaderboard() {
       if (idx === 1) rankDisplay = '🥈';
       if (idx === 2) rankDisplay = '🥉';
       
-      const imgSrc = `./images/${m.caricature_id}`;
+      const imgSrc = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/${m.caricature_id}`;
 
       const div = document.createElement('div');
       div.className = `leaderboard-item ${rankClass}`;
