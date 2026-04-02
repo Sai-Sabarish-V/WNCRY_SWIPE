@@ -141,7 +141,9 @@ function renderCard(questionData) {
   const imgSrc = `./images/${questionData.caricature_id}`;
 
   card.innerHTML = `
-    <img src="${imgSrc}" alt="${questionData.name}" draggable="false" />
+    <div class="img-wrapper" style="width:100%; height:100%; position:relative; overflow:hidden; border-radius: var(--card-radius) var(--card-radius) 0 0;">
+      <img src="${imgSrc}" alt="${questionData.name}" draggable="false" style="width:100%; height:100%; object-fit:cover;" />
+    </div>
     <div class="card-info">
       <div class="card-header">
          <span class="card-name">${questionData.name}</span>
@@ -157,6 +159,13 @@ function renderCard(questionData) {
   container.appendChild(card);
   topCard = card;
   initHammer(topCard);
+  
+  // Apply pixel transition to the new image
+  const imgWrapper = card.querySelector('.img-wrapper');
+  const imgEl = card.querySelector('img');
+  if (imgWrapper && imgEl && typeof runPixelTransitionForImage === 'function') {
+    runPixelTransitionForImage(imgWrapper, imgEl);
+  }
 }
 
 function initHammer(card) {
