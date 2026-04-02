@@ -103,8 +103,8 @@ async function getLeaderboard(traitId = null) {
 
   query += `
     GROUP BY s.id
+    HAVING (SUM(p.yes_count) + SUM(p.no_count) + SUM(p.maybe_count)) > 0
     ORDER BY score DESC
-    LIMIT 3
   `;
 
   const rows = await db.all(query, params);

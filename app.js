@@ -325,7 +325,7 @@ async function renderLeaderboard() {
       container.appendChild(div);
     });
 
-    if (scoredMembers.length > 0 && typeof confetti === 'function') {
+    if (scoredMembers.length > 0 && typeof confetti === 'function' && !currentLeaderboardTrait) {
       triggerConfetti();
     }
   } catch (err) {
@@ -375,7 +375,7 @@ function filterLeaderboard(traitId, pillEl) {
   pillEl.classList.add('active');
   
   currentLeaderboardTrait = traitId;
-  const subtitle = traitId ? "Top 3 for Selected Trait" : "Top 3 Overall Standing";
+  const subtitle = traitId ? "Standings for Selected Trait" : "Overall Standings";
   const subtitleEl = document.getElementById('lb-subtitle');
   if (subtitleEl) subtitleEl.innerText = subtitle;
   
