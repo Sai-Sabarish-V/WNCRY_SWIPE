@@ -141,7 +141,7 @@ function renderCard(questionData) {
   const imgSrc = `./images/${questionData.caricature_id}`;
 
   card.innerHTML = `
-    <img src="${imgSrc}" alt="${questionData.name}" draggable="false" style="background: rgba(255,255,255,0.05); padding:20px; object-fit: contain;" />
+    <img src="${imgSrc}" alt="${questionData.name}" draggable="false" />
     <div class="card-info">
       <div class="card-header">
          <span class="card-name">${questionData.name}</span>
