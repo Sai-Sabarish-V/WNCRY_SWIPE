@@ -14,7 +14,6 @@ app.use(express.json());
 const rootDir = path.join(__dirname, '..');
 app.get('/', (req, res) => res.sendFile(path.join(rootDir, 'index.html')));
 app.get('/app.js', (req, res) => res.sendFile(path.join(rootDir, 'app.js')));
-app.get('/aurora.js', (req, res) => res.sendFile(path.join(rootDir, 'aurora.js')));
 app.get('/pixelTransition.js', (req, res) => res.sendFile(path.join(rootDir, 'pixelTransition.js')));
 app.get('/style.css', (req, res) => res.sendFile(path.join(rootDir, 'style.css')));
 app.use('/images', express.static(path.join(rootDir, 'images')));
